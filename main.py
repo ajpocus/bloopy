@@ -29,14 +29,10 @@ interval = beat_seconds * NOTE
 def record():
 	threading.Timer(interval, record).start()
 
-	frames = []
-	t_end = time.time() + 60 / BPM * pow(NOTE, 2)
-	while time.time() < t_end:
-		data = list(stream.read(CHUNK))
-		frames.append(data)
+	data = list(stream.read(CHUNK))
 
 	# Compute PSD:
-	f, P = signal.periodogram(frames, fs=RATE) # Frequencies and PSD
+	f, P = signal.periodogram(data, fs=RATE) # Frequencies and PSD
 
 	max_index = P.argmax()
 	power = P[max_index]
@@ -49,6 +45,6 @@ record()
 
 print("* done recording")
 
-stream.stop_stream()
-stream.close()
-pa.terminate()
+# stream.stop_stream()
+# stream.close()
+# pa.terminate()
