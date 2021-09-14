@@ -11,7 +11,11 @@ RATE = 44100
 RECORD_SECONDS = 15
 WAVE_OUTPUT_FILENAME = "output.wav"
 BPM = 120
+BEAT_SECONDS = 60 / BPM
+CHUNK = int(RATE // (BEAT_SECONDS / 2))
 NOTE = 1/8
+
+print("CHUNK", CHUNK)
 
 pa = pyaudio.PyAudio()
 
@@ -23,11 +27,11 @@ stream = pa.open(format=FORMAT,
 
 print("* recording")
 
-beat_seconds = 60 / BPM
-interval = beat_seconds * NOTE
+interval = BEAT_SECONDS * NOTE
 
 def record():
-	threading.Timer(interval, record).start()
+	current_thread = threading.Timer(interval, record)
+	current_thread.start()
 
 	data = list(stream.read(CHUNK))
 
@@ -41,7 +45,12 @@ def record():
 		freq = f[max_index]
 		print(freq)
 
-record()
+current_thread = threading.Timer(interval, record)
+
+try:
+	record()
+except KeyboardInterrupt:
+	current_thread.cancel()
 
 print("* done recording")
 
