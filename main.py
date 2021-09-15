@@ -78,7 +78,8 @@ def main():
 	for i, pitch in enumerate(note_list):
 		midi.addNote(track, channel, pitch, time + i, duration, volume)
 
-	with open("major-scale.mid", "wb") as output_file:
+	mid_filename = filename.split(".")[0] + ".mid"
+	with open(mid_filename, "wb") as output_file:
 		midi.writeFile(output_file)
 
 	f, P = get_signal(data)
