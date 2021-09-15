@@ -7,6 +7,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 from scipy import signal
+from midiutil import MIDIFile
+
+track    = 0
+channel  = 0
+time     = 0    # In beats
+duration = 1    # In beats
+tempo    = 120  # In BPM
+volume   = 100  # 0-127, as per the MIDI standard
 
 CHANNELS = 1
 RATE = 44100
@@ -18,13 +26,10 @@ FREQ_LIMIT = 3
 A4 = 440
 C0 = A4 * pow(2, -4.75)
 NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
+MIDI_BASE = 69
 
-def pitch(freq):
-    h = round(12 * log2(freq / C0))
-    octave = h // 12
-    n = h % 12
-
-    return NAMES[n] + str(octave)
+def freq_to_midi(freq):
+	return round(12 * log2(freq / A4) + MIDI_BASE)
 
 def chunks(lst, n):
     """Yield successive n-sized chunks from lst."""
@@ -50,6 +55,7 @@ def main():
 	wav.close()
 
 	data_chunks = chunks(data, CHUNK)
+	note_list = []
 	for chunk in data_chunks:
 		# Compute PSD:
 		f, P = get_signal(chunk)
@@ -61,7 +67,19 @@ def main():
 		print("POWER", power)
 		freq = f[idx]
 		print("FREQ", freq)
-		print("PITCH", pitch(freq))
+		print("PITCH", freq_to_midi(freq))
+		note_list.append(freq_to_midi(freq))
+
+	print("* writing midi")
+	midi = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
+                      # automatically)
+	midi.addTempo(track, time, tempo)
+
+	for i, pitch in enumerate(note_list):
+		midi.addNote(track, channel, pitch, time + i, duration, volume)
+
+	with open("major-scale.mid", "wb") as output_file:
+		midi.writeFile(output_file)
 
 	f, P = get_signal(data)
 

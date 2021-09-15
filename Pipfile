@@ -8,6 +8,8 @@ pyaudio = "*"
 matplotlib = "*"
 scipy = "*"
 numpy = "*"
+mingus = "*"
+midiutil = "*"
 
 [dev-packages]
 
