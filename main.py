@@ -1,59 +1,61 @@
-import threading
-import time
-import pyaudio
-
+import wave
+import sys
+import matplotlib.pyplot as plt
+import numpy as np
 from scipy import signal
 
-CHUNK = 1024
-FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
-RECORD_SECONDS = 15
-WAVE_OUTPUT_FILENAME = "output.wav"
 BPM = 120
 BEAT_SECONDS = 60 / BPM
-CHUNK = int(RATE // (BEAT_SECONDS / 2))
+CHUNK = 1024
 NOTE = 1/8
+FREQ_LIMIT = 3
 
-print("CHUNK", CHUNK)
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
-pa = pyaudio.PyAudio()
+def get_signal(chunk):
+	f, P = signal.periodogram(chunk, fs=RATE) # Frequencies and PSD
+	f = [i * 2 for i in f[:len(f)//2]]
+	P = P[:len(P)//2]
 
-stream = pa.open(format=FORMAT,
-				channels=CHANNELS,
-				rate=RATE,
-				input=True,
-				frames_per_buffer=CHUNK)
+	return f, P
 
-print("* recording")
+def main():
+	filename = sys.argv[1]
+	if not filename:
+		raise Exception("Please provide a wav file path as the first argument.")
 
-interval = BEAT_SECONDS * NOTE
+	print("* reading")
 
-def record():
-	current_thread = threading.Timer(interval, record)
-	current_thread.start()
+	wav = wave.open(filename, mode="rb")
+	data = list(wav.readframes(wav.getnframes()))
+	wav.close()
 
-	data = list(stream.read(CHUNK))
+	data_chunks = chunks(data, CHUNK)
+	for chunk in data_chunks:
+		# Compute PSD:
+		f, P = get_signal(chunk)
+		powers = P	# get the non-mirrored data from the frequency analysis
 
-	# Compute PSD:
-	f, P = signal.periodogram(data, fs=RATE) # Frequencies and PSD
+		largest_powers = list(reversed(np.argsort(powers)))
+		indices = largest_powers[:FREQ_LIMIT]
 
-	max_index = P.argmax()
-	power = P[max_index]
-	print("POWER", power)
-	if power > 50:
-		freq = f[max_index]
-		print(freq)
+		for idx in indices:
+			power = powers[idx]
+			print("POWER", power)
+			freq = f[idx]
+			print(freq)
 
-current_thread = threading.Timer(interval, record)
+	f, P = get_signal(data)
 
-try:
-	record()
-except KeyboardInterrupt:
-	current_thread.cancel()
+	print("RMS", np.sqrt(P.max()))
+	plt.semilogy(f, P)
+	plt.show()
+	print("* done")
 
-print("* done recording")
-
-# stream.stop_stream()
-# stream.close()
-# pa.terminate()
+if __name__ == '__main__':
+	main()
