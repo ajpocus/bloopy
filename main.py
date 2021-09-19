@@ -48,8 +48,8 @@ def chunks(lst, n):
 
 def get_signal(chunk):
 	f, P = signal.periodogram(chunk, fs=RATE) # Frequencies and PSD
-	f = [i * 2 for i in f[:len(f)//2]] # double the frequency for the non-mirrored half
-	P = P[:len(P)//2] # take the non-mirrored part of the power distribution
+	f = [i * 2 for i in f[1:len(f)//2]] # double the frequency for the non-mirrored half
+	P = P[1:len(P)//2] # take the non-mirrored part of the power distribution
 
 	return f, P
 
@@ -82,13 +82,12 @@ def main():
 		print("FREQ", freq)
 		note = freq_to_midi(freq)
 		print("PITCH", freq_to_midi(freq))
-		if current_note == freq:
-			note = note_list[-1]
-			note.duration += DEFAULT_DURATION
+		if current_note == note:
+			note_list[-1].duration += DEFAULT_DURATION
 		else:
 			note_list.append(Note(note))
 
-		current_note = freq
+		current_note = note
 
 	print("* writing midi")
 	midi = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
