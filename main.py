@@ -1,20 +1,10 @@
 import wave
 import sys
-
 from math import log2, pow
 
-import matplotlib.pyplot as plt
 import numpy as np
-
 from scipy import signal
 from midiutil import MIDIFile
-
-track    = 0
-channel  = 0
-time     = 0    # In beats
-duration = 1    # In beats
-tempo    = 120  # In BPM
-volume   = 100  # 0-127, as per the MIDI standard
 
 CHANNELS = 1
 RATE = 44100
@@ -31,7 +21,7 @@ C0 = A4 * pow(2, -4.75)
 NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 MIDI_BASE = 69
 FRAME_COUNT = int(round(SECONDS_PER_BEAT * RATE * NOTE * 4))
-DEFAULT_DURATION = NOTE / BEAT
+DEFAULT_DURATION = NOTE
 
 class Note:
 	def __init__(self, value=C4, duration=DEFAULT_DURATION):
@@ -54,7 +44,13 @@ def get_signal(chunk):
 	return f, P
 
 def main():
+	track    = 0
+	channel  = 0
+	time     = 0    # In beats
+	tempo    = 120  # In BPM
+	volume   = 100  # 0-127, as per the MIDI standard
 	filename = sys.argv[1]
+
 	if len(filename) <= 0 or not filename.endswith(".wav"):
 		raise Exception("Please provide a wav file path as the first argument.")
 
@@ -91,13 +87,16 @@ def main():
 
 	print("* writing midi")
 	midi = MIDIFile(1)  # One track, defaults to format 1 (tempo track is created
-                      # automatically)
+                      	# automatically)
 	midi.addTempo(track, time, tempo)
 
-	for i, note in enumerate(note_list):
-		midi.addNote(track, channel, note.value, time + i, note.duration, volume)
+	last_duration = 0
+	for note in note_list:
+		time += last_duration
+		midi.addNote(track, channel, note.value, time, note.duration, volume)
+		last_duration = note.duration
 
-	mid_filename = filename.split(".")[0] + ".mid"
+	mid_filename = "out.mid"
 	with open(mid_filename, "wb") as output_file:
 		midi.writeFile(output_file)
 
