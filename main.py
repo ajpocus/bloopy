@@ -1,8 +1,9 @@
 import wave
 import sys
-from math import log2, pow
+from math import log2, pow, sqrt
 
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import signal
 from midiutil import MIDIFile
 
@@ -22,6 +23,9 @@ NAMES = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 MIDI_BASE = 69
 FRAME_COUNT = int(round(SECONDS_PER_BEAT * RATE * NOTE * 4))
 DEFAULT_DURATION = NOTE
+FREQ_BOTTOM = 2e1
+FREQ_TOP = 2e4
+SILENCE = -1
 
 class Note:
 	def __init__(self, value=C4, duration=DEFAULT_DURATION):
@@ -38,8 +42,8 @@ def chunks(lst, n):
 
 def get_signal(chunk):
 	f, P = signal.periodogram(chunk, fs=RATE) # Frequencies and PSD
-	f = [i * 2 for i in f[1:len(f)//2]] # double the frequency for the non-mirrored half
-	P = P[1:len(P)//2] # take the non-mirrored part of the power distribution
+	f = [i * 2 for i in f[10:len(f)//2]] # double the frequency for the non-mirrored half
+	P = P[10:len(P)//2] # take the non-mirrored part of the power distribution
 
 	return f, P
 
@@ -63,21 +67,30 @@ def main():
 	data_chunks = chunks(data, FRAME_COUNT)
 	note_list = []
 
+	f, P = get_signal(data)
+	mean_power = np.mean(P)
+	# plt.plot(f, P)
+	# plt.show(block=True)
+
 	current_note = None
 	for chunk in data_chunks:
 		# Compute PSD:
 		f, P = get_signal(chunk)
-
+		# plt.plot(f, P)
+		# plt.show(block=True)
 		powers = P
 		largest_powers = list(reversed(np.argsort(powers)))
 		idx = largest_powers[0]
 		power = powers[idx]
 		freq = f[idx]
 
-		print("POWER", power)
-		print("FREQ", freq)
+		if power < 1 or power < mean_power or freq < FREQ_BOTTOM or freq > FREQ_TOP:
+			current_note = None
+			note_list.append(Note(value=SILENCE, duration=DEFAULT_DURATION))
+
+			continue
+
 		note = freq_to_midi(freq)
-		print("PITCH", freq_to_midi(freq))
 		if current_note == note:
 			note_list[-1].duration += DEFAULT_DURATION
 		else:
@@ -92,6 +105,10 @@ def main():
 
 	last_duration = 0
 	for note in note_list:
+		if note.value == SILENCE:
+			time += note.duration
+			continue
+
 		time += last_duration
 		midi.addNote(track, channel, note.value, time, note.duration, volume)
 		last_duration = note.duration
