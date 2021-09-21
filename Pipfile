@@ -5,12 +5,9 @@ name = "pypi"
 
 [packages]
 pyaudio = "*"
-matplotlib = "*"
 scipy = "*"
 numpy = "*"
-mingus = "*"
 midiutil = "*"
-flask = "*"
 
 [dev-packages]
 
