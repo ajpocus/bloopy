@@ -25,3 +25,7 @@ This MIDI file can be imported into any DAW, such as Logic Pro. With a bit of cl
 ## Note
 
 This is a highly experimental work in progress. You might have to adjust certain parameters to get it to work for you, and the result isn't going to be perfect. That said, it's a good approximation from the results I've seen so far.
+
+## License
+
+Copyright 2021, Austin Pocus, under the MIT license. See LICENSE file for details.
