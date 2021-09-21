@@ -84,7 +84,7 @@ def main():
 		power = powers[idx]
 		freq = f[idx]
 
-		if power < 1 or power < mean_power or freq < FREQ_BOTTOM or freq > FREQ_TOP:
+		if power < 10 or power < mean_power or freq < FREQ_BOTTOM or freq > FREQ_TOP:
 			current_note = None
 			note_list.append(Note(value=SILENCE, duration=DEFAULT_DURATION))
 
