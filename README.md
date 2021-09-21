@@ -26,6 +26,10 @@ This MIDI file can be imported into any DAW, such as Logic Pro. With a bit of cl
 
 This is a highly experimental work in progress. You might have to adjust certain parameters to get it to work for you, and the result isn't going to be perfect. That said, it's a good approximation from the results I've seen so far.
 
+## Future plans
+
+The idea is to turn this into a mobile app, where I can whistle into my phone and it'll save it to shared storage. For now, though, I give you the script.
+
 ## License
 
 Copyright 2021, Austin Pocus, under the MIT license. See LICENSE file for details.
