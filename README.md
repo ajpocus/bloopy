@@ -4,7 +4,7 @@ _Turns whistling into MIDI_
 
 ## Installation
 
-First, you'll want `pipenv` installed, which is outside the scope of this README. Please refer to [the pipenv documentation](https://pipenv.pypa.io/en/ latest/) for details on installing `pipenv` for your OS.
+First, you'll want `pipenv` installed, which is outside the scope of this README. Please refer to [the pipenv documentation](https://pipenv.pypa.io/en/latest/) for details on installing `pipenv` for your OS.
 
 Once you have `pipenv` installed, run:
 
